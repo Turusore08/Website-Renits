@@ -1,11 +1,11 @@
 # Impor library yang dibutuhkan
-from flask import Flask, request # -> Tambahkan 'request' di sini
+from flask import Flask, request
 from flask_restful import reqparse, Api, Resource
 from flask_cors import CORS
 import pickle
 import pandas as pd
 import os
-from werkzeug.exceptions import BadRequest # -> Impor ini untuk menangkap error spesifik
+from werkzeug.exceptions import BadRequest
 
 # --- 1. Inisialisasi Aplikasi Flask dan Flask-Restful ---
 app = Flask(__name__)
@@ -55,13 +55,9 @@ class PatchDataResource(Resource):
             return {'status': 'error', 'message': f'Gagal menerima data patch: {str(e)}'}, 400
 
 
-# --- 5. Resource Prediksi yang Diperbarui dengan Penanganan Error Lebih Baik ---
+# --- 5. Resource Prediksi yang Diperbarui ---
 class PredictionResource(Resource):
     def post(self):
-        # --- TAMBAHKAN INI UNTUK DEBUGGING AKHIR ---
-        # Mencetak data mentah yang diterima oleh server sebelum divalidasi.
-        print(f"--- DEBUG PREDICT ---: Menerima data mentah: {request.get_json()}", flush=True)
-        
         if loaded_model is None:
             return {'status': 'error', 'message': 'Model tidak tersedia, periksa log server.'}, 500
 
@@ -84,12 +80,21 @@ class PredictionResource(Resource):
             prediction_result = loaded_model.predict(input_df)
             del patch_data_storage[patch_id]
             result_text = "Terindikasi Penyakit Ginjal" if prediction_result[0] == 1 else "Tidak Terindikasi Penyakit Ginjal"
-            return {'status': 'success', 'prediction': result_text}, 200
+            
+            # --- PERUBAHAN KRITIS DI SINI ---
+            # Kirim kembali hasil prediksi DAN data patch yang digunakan
+            return {
+                'status': 'success', 
+                'prediction': result_text,
+                'used_patch_data': {
+                    'sugar': patch_data['sugar'],
+                    'potassium': patch_data['potassium']
+                }
+            }, 200
 
         except BadRequest as e:
             error_details = e.data.get('message', 'Format data tidak diketahui.')
-            detailed_message = f"Data yang dikirim tidak valid. Detail dari server: {error_details}"
-            return {'status': 'error', 'message': detailed_message}, 400
+            return {'status': 'error', 'message': f"Data yang dikirim tidak valid: {error_details}"}, 400
         except Exception as e:
             return {'status': 'error', 'message': f'Terjadi kesalahan tak terduga di server: {str(e)}'}, 500
 

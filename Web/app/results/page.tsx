@@ -7,97 +7,48 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { User, Droplets, Zap, AlertTriangle, CheckCircle, RefreshCw } from "lucide-react"
+import { User, AlertTriangle, CheckCircle, RefreshCw, Droplets, Zap } from "lucide-react"
 import { Label } from "@/components/ui/label"
 
 export default function ResultsPage() {
-  // State untuk data dari berbagai sumber
   const [userData, setUserData] = useState<any>(null)
-  const [questionnaireData, setQuestionnaireData] = useState<any>(null) // Data dari form
+  const [questionnaireData, setQuestionnaireData] = useState<any>(null)
+  
+  // State untuk data dari patch
   const [potassiumLevel, setPotassiumLevel] = useState(0)
   const [sugarLevel, setSugarLevel] = useState(0)
   
-  // State untuk status UI
-  const [isConnected, setIsConnected] = useState(false)
-  const [isLoading, setIsLoading] = useState(true) // State loading utama
-  const [statusMessage, setStatusMessage] = useState("Memuat data pengguna...")
-
-  // State untuk hasil akhir dari API
   const [predictionResult, setPredictionResult] = useState<string | null>(null)
-  
+  const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
 
-  // --- LOGIKA UTAMA APLIKASI ADA DI SINI ---
   useEffect(() => {
     const user = localStorage.getItem("user")
-    const questionnaireJSON = localStorage.getItem("questionnaireData")
+    const questionnaire = localStorage.getItem("questionnaireDataForDisplay")
+    const predictionDataJSON = localStorage.getItem("predictionData")
 
-    if (!user || !questionnaireJSON) {
-      router.push("/login")
+    if (!user || !questionnaire || !predictionDataJSON) {
+      router.push("/examination")
       return
     }
 
-    const parsedUser = JSON.parse(user)
-    const parsedQuestionnaire = JSON.parse(questionnaireJSON)
-    setUserData(parsedUser)
-    setQuestionnaireData(parsedQuestionnaire)
+    const predictionData = JSON.parse(predictionDataJSON)
 
-    // Fungsi utama untuk menjalankan seluruh alur
-    const runAnalysis = async () => {
-      // 1. Simulasikan koneksi ke patch
-      setStatusMessage("Menghubungkan ke Smartpatch...")
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      setIsConnected(true)
+    setUserData(JSON.parse(user))
+    setQuestionnaireData(JSON.parse(questionnaire))
+    
+    // Set semua state dari objek predictionData
+    setPredictionResult(predictionData.prediction)
+    setPotassiumLevel(predictionData.used_patch_data.potassium)
+    setSugarLevel(predictionData.used_patch_data.sugar)
 
-      // 2. Simulasikan pengambilan data dari patch
-      setStatusMessage("Menganalisis data keringat...")
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      const potassiumFromPatch = 3.5 + Math.random() * 2
-      const sugarFromPatch = 80 + Math.random() * 40
-      setPotassiumLevel(Number(potassiumFromPatch.toFixed(1)))
-      setSugarLevel(Number(sugarFromPatch.toFixed(0)))
-
-      // 3. GABUNGKAN SEMUA DATA untuk dikirim ke API
-      const completeDataForAPI = {
-        age: parseFloat(parsedQuestionnaire.age),
-        diabetes_mellitus: parsedQuestionnaire.diabetes_mellitus === "ya",
-        hypertension: parsedQuestionnaire.hypertension === "ya",
-        peda_edema: parsedQuestionnaire.peda_edema === "ya",
-        coronary_artery_disease: parsedQuestionnaire.coronary_artery_disease === "ya",
-        appetite: parsedQuestionnaire.appetite === "ya",
-        potassium: Number(potassiumFromPatch.toFixed(1)),
-        sugar: Number(sugarFromPatch.toFixed(0)),
-      }
-
-      // 4. PANGGIL API dengan data yang sudah LENGKAP
-      setStatusMessage("Mengirim data ke server untuk dianalisis...")
-      try {
-        const response = await fetch('http://localhost:5000/predict', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(completeDataForAPI),
-        })
-        const result = await response.json()
-
-        if (response.ok) {
-          setPredictionResult(result.prediction)
-        } else {
-          setPredictionResult(`Error: ${result.message}`)
-        }
-      } catch (error) {
-        console.error("API call failed:", error)
-        setPredictionResult("Error: Gagal terhubung ke server.")
-      } finally {
-        setIsLoading(false) // Hentikan loading setelah semua selesai
-      }
-    }
-
-    runAnalysis()
+    setIsLoading(false)
   }, [router])
 
 
-  // Helper functions untuk UI (tidak berubah)
+  // Helper functions untuk UI
   const getRiskBadgeClasses = (risk: string) => {
+    if (!risk) return "bg-gray-200 text-gray-800"
     if (risk.startsWith("Error")) return "bg-gray-400 text-white"
     switch (risk) {
       case "Terindikasi Penyakit Ginjal": return "bg-destructive text-destructive-foreground"
@@ -105,6 +56,7 @@ export default function ResultsPage() {
     }
   }
   const getRiskIcon = (risk: string) => {
+    if (!risk) return <RefreshCw className="h-4 w-4" />
     if (risk.startsWith("Error")) return <AlertTriangle className="h-4 w-4" />
     switch (risk) {
       case "Terindikasi Penyakit Ginjal": return <AlertTriangle className="h-4 w-4" />
@@ -119,23 +71,19 @@ export default function ResultsPage() {
     if (level >= 80 && level <= 120) return { status: "Normal", color: "text-green-600" }
     return { status: "Tidak Normal", color: "text-destructive" }
   }
-
-  // Tampilan Loading utama
+  
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-green-50 p-4">
         <RefreshCw className="h-12 w-12 text-primary animate-spin mb-4" />
-        <h2 className="text-xl font-semibold text-gray-700">{statusMessage}</h2>
-        <p className="text-gray-500">Mohon tunggu sebentar...</p>
+        <h2 className="text-xl font-semibold text-gray-700">Memuat Hasil...</h2>
       </div>
     )
   }
 
-  // Tampilan Halaman Hasil
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 p-4">
       <div className="max-w-4xl mx-auto">
-        {/* Header */}
         <div className="text-center mb-8">
             <div className="inline-flex items-center space-x-2 mb-4">
                 <Image src="https://placehold.co/40x40/3B82F6/FFFFFF?text=R" alt="RenITS Logo" width={40} height={40} className="h-10 w-10" />
@@ -145,14 +93,13 @@ export default function ResultsPage() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
-            {/* User Information */}
             <Card>
                 <CardHeader><CardTitle className="flex items-center space-x-2"><User className="h-5 w-5" /><span>Data Pengguna</span></CardTitle></CardHeader>
                 <CardContent className="space-y-3">
                     <div><Label className="text-sm font-medium text-gray-500">Email</Label><p className="text-base">{userData?.email}</p></div>
                     <div><Label className="text-sm font-medium text-gray-500">Usia</Label><p className="text-base">{questionnaireData?.age} tahun</p></div>
                     <div>
-                        <Label className="text-sm font-medium text-gray-500">Riwayat Kesehatan</Label>
+                        <Label className="text-sm font-medium text-gray-500">Jawaban Kuesioner</Label>
                         <div className="flex flex-wrap gap-2 mt-1">
                             {questionnaireData?.diabetes_mellitus === "ya" && <Badge variant="outline">Diabetes</Badge>}
                             {questionnaireData?.hypertension === "ya" && <Badge variant="outline">Hipertensi</Badge>}
@@ -164,14 +111,13 @@ export default function ResultsPage() {
                 </CardContent>
             </Card>
 
-            {/* Smartpatch Status & Hasil Analisis */}
             <div className="space-y-6">
                 <Card>
                     <CardHeader><CardTitle className="flex items-center space-x-2"><Zap className="h-5 w-5" /><span>Status Smartpatch</span></CardTitle></CardHeader>
                     <CardContent>
                         <div className="flex items-center space-x-2">
-                            <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse" />
-                            <span className="text-sm text-green-600">Terhubung & Selesai Menganalisis</span>
+                            <div className="w-3 h-3 rounded-full bg-green-500" />
+                            <span className="text-sm text-green-600">Data berhasil diterima dan dianalisis</span>
                         </div>
                     </CardContent>
                 </Card>
@@ -189,11 +135,10 @@ export default function ResultsPage() {
                 </Card>
             </div>
 
-            {/* Real-time Measurements */}
             <Card className="md:col-span-2">
                 <CardHeader>
                     <CardTitle className="flex items-center space-x-2"><Droplets className="h-5 w-5" /><span>Pengukuran dari Keringat</span></CardTitle>
-                    <CardDescription>Data yang didapat dari analisis Smartpatch</CardDescription>
+                    <CardDescription>Data yang digunakan untuk analisis</CardDescription>
                 </CardHeader>
                 <CardContent className="grid gap-6 sm:grid-cols-2">
                     <div>
@@ -244,8 +189,22 @@ export default function ResultsPage() {
             </div>
         )}
 
-        <div className="mt-8 text-center">
-            <Button onClick={() => router.push("/examination")} variant="outline">Pemeriksaan Ulang</Button>
+        <div className="mt-8 text-center space-x-4">
+          <Button onClick={() => router.push("/examination")} variant="outline">
+            Pemeriksaan Ulang
+          </Button>
+          <Button
+            onClick={() => {
+              // Simpan status kesehatan untuk digunakan di halaman rekomendasi
+              if (predictionResult) {
+                localStorage.setItem("healthStatus", predictionResult);
+              }
+              router.push("/recommendations");
+            }}
+            className="bg-primary hover:bg-primary/90"
+          >
+            Lihat Rekomendasi
+          </Button>
         </div>
       </div>
     </div>

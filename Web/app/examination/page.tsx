@@ -9,12 +9,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { User, Calendar, QrCode } from "lucide-react" // Menambahkan ikon untuk Patch ID
+import { User, Calendar, QrCode } from "lucide-react"
 
 export default function ExaminationPage() {
-  // State untuk menyimpan data form. Ditambahkan 'patch_id'.
   const [formData, setFormData] = useState({
-    patch_id: "", // <-- FIELD BARU YANG KRUSIAL
+    patch_id: "",
     diabetes_mellitus: "",
     hypertension: "",
     peda_edema: "",
@@ -32,12 +31,10 @@ export default function ExaminationPage() {
     }
   }, [router])
 
-  // --- FUNGSI INI DIUBAH TOTAL UNTUK MEMANGGIL API /predict ---
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
-    // 1. Siapkan data untuk dikirim, sesuai dengan format yang diharapkan backend
     const dataToSend = {
       patch_id: formData.patch_id,
       age: parseFloat(formData.age),
@@ -47,40 +44,32 @@ export default function ExaminationPage() {
       coronary_artery_disease: formData.coronary_artery_disease === "ya",
       appetite: formData.appetite === "ya",
     }
-
-    // --- KRITIS: Tambahkan ini untuk debugging ---
-    // Baris ini akan mencetak data yang akan dikirim ke console browser.
-    console.log("Data yang akan dikirim ke backend:", JSON.stringify(dataToSend, null, 2));
     
     try {
-      // 2. Lakukan panggilan fetch ke endpoint /predict
       const response = await fetch('http://localhost:5000/predict', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dataToSend),
       })
 
       const result = await response.json()
 
-      // 3. Tangani respons dari server
-      if (response.ok) { // Jika status HTTP adalah 200 (OK)
-        // Simpan hasil prediksi ke localStorage untuk dibaca oleh halaman hasil
-        localStorage.setItem('predictionResult', result.prediction)
-        // Pindahkan pengguna ke halaman hasil
+      if (response.ok) {
+        // --- PERUBAHAN KRITIS DI SINI ---
+        // Simpan seluruh objek hasil dari server ke localStorage
+        localStorage.setItem('predictionData', JSON.stringify(result))
+        // Simpan juga data kuesioner untuk ditampilkan
+        localStorage.setItem('questionnaireDataForDisplay', JSON.stringify(formData))
         router.push("/results")
       } else {
-        // Jika server mengembalikan error (misal: 404 karena patch_id tidak ditemukan)
         console.error("Error dari server:", result.message)
         alert(`Terjadi kesalahan: ${result.message}`)
-        setIsLoading(false) // Hentikan loading agar pengguna bisa mencoba lagi
+        setIsLoading(false)
       }
     } catch (error) {
-      // Jika terjadi error jaringan (misal: server back-end mati)
       console.error("Tidak bisa terhubung ke server:", error)
       alert("Gagal terhubung ke server. Pastikan server back-end sudah berjalan.")
-      setIsLoading(false) // Hentikan loading
+      setIsLoading(false)
     }
   }
 
@@ -93,7 +82,6 @@ export default function ExaminationPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 p-4">
       <div className="max-w-2xl mx-auto">
-        {/* Header */}
         <div className="text-center mb-8">
             <div className="inline-flex items-center space-x-2 mb-4">
                 <Image src="https://placehold.co/40x40/3B82F6/FFFFFF?text=R" alt="RenITS Logo" width={40} height={40} className="h-10 w-10" />
@@ -109,7 +97,6 @@ export default function ExaminationPage() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* --- INPUT BARU UNTUK PATCH ID --- */}
               <div className="space-y-3">
                 <Label htmlFor="patch_id" className="text-base font-medium">ID Smartpatch</Label>
                 <div className="relative">
@@ -118,7 +105,6 @@ export default function ExaminationPage() {
                 </div>
               </div>
 
-              {/* Pertanyaan Kuesioner */}
               <div className="space-y-3">
                 <Label className="text-base font-medium">1. Apakah anda memiliki riwayat penyakit diabetes melitus?</Label>
                 <RadioGroup value={formData.diabetes_mellitus} onValueChange={(value) => updateFormData("diabetes_mellitus", value)}>
