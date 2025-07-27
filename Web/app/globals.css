@@ -1,0 +1,104 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%; /* White */
+    --foreground: 220 13% 15%; /* Dark Gray for text */
+    --card: 0 0% 100%;
+    --card-foreground: 220 13% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 13% 15%;
+    --primary: 210 100% 40%; /* Strong Blue as primary, matching logo */
+    --primary-foreground: 0 0% 100%; /* White */
+    --secondary: 30 20% 95%; /* Light Beige/Cream */
+    --secondary-foreground: 220 13% 15%;
+    --muted: 210 20% 95%; /* Light Blue-Gray */
+    --muted-foreground: 210 10% 50%; /* Medium Gray */
+    --accent: 210 20% 95%; /* Light Blue-Gray */
+    --accent-foreground: 220 13% 15%;
+    --destructive: 0 84.2% 60.2%; /* Strong Red for destructive */
+    --destructive-foreground: 0 0% 100%; /* White */
+    --border: 210 10% 85%; /* Light Gray */
+    --input: 210 10% 85%;
+    --ring: 210 100% 40%; /* Ring color matches primary */
+    --chart-1: 210 100% 40%; /* Blue */
+    --chart-2: 210 80% 50%; /* Blue (as a secondary chart color) */
+    --chart-3: 120 60% 40%; /* Green */
+    --chart-4: 40 80% 60%; /* Orange */
+    --chart-5: 280 60% 50%; /* Purple */
+    --radius: 0.5rem;
+
+    /* New logo blue color */
+    --logo-blue: 207 100% 50%;
+
+    /* Sidebar specific colors for light theme */
+    --sidebar-background: 30 10% 98%; /* Very light beige */
+    --sidebar-foreground: 220 13% 26.1%; /* Darker gray */
+    --sidebar-primary: 210 100% 40%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 30 15% 90%; /* Slightly darker light beige */
+    --sidebar-accent-foreground: 220 13% 15%;
+    --sidebar-border: 30 10% 80%;
+    --sidebar-ring: 210 100% 40%;
+  }
+  .dark {
+    --background: 220 13% 10%; /* Dark Blue-Gray */
+    --foreground: 210 20% 95%; /* Light Blue-Gray */
+    --card: 220 13% 15%;
+    --card-foreground: 210 20% 95%;
+    --popover: 220 13% 15%;
+    --popover-foreground: 210 20% 95%;
+    --primary: 210 100% 50%; /* Lighter Blue for dark background */
+    --primary-foreground: 220 13% 10%; /* Dark Blue-Gray */
+    --secondary: 30 15% 20%; /* Darker beige for dark theme */
+    --secondary-foreground: 210 20% 95%;
+    --muted: 220 13% 20%;
+    --muted-foreground: 210 10% 70%;
+    --accent: 220 13% 20%;
+    --accent-foreground: 210 20% 95%;
+    --destructive: 0 84.2% 70.2%; /* Adjusted strong red for dark background */
+    --destructive-foreground: 220 13% 10%;
+    --border: 220 13% 20%;
+    --input: 220 13% 20%;
+    --ring: 210 100% 50%;
+    --chart-1: 210 100% 50%; /* Blue */
+    --chart-2: 210 80% 60%; /* Blue */
+    --chart-3: 120 60% 50%; /* Green */
+    --chart-4: 40 80% 70%; /* Orange */
+    --chart-5: 280 60% 60%; /* Purple */
+
+    /* New logo blue color for dark theme */
+    --logo-blue: 207 100% 60%;
+
+    /* Sidebar specific colors for dark theme */
+    --sidebar-background: 30 10% 12%;
+    --sidebar-foreground: 210 20% 90%;
+    --sidebar-primary: 210 100% 50%;
+    --sidebar-primary-foreground: 220 13% 10%;
+    --sidebar-accent: 30 15% 18%;
+    --sidebar-accent-foreground: 210 20% 90%;
+    --sidebar-border: 30 10% 18%;
+    --sidebar-ring: 210 100% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
