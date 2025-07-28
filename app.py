@@ -97,6 +97,20 @@ class PredictionResource(Resource):
             return {'status': 'error', 'message': f"Data yang dikirim tidak valid: {error_details}"}, 400
         except Exception as e:
             return {'status': 'error', 'message': f'Terjadi kesalahan tak terduga di server: {str(e)}'}, 500
+class GetPatchDataResource(Resource):
+    def get(self, patch_id):
+        # Cek apakah ada data untuk patch_id yang diminta
+        if patch_id in patch_data_storage:
+            patch_data = patch_data_storage[patch_id]
+            return {
+                'status': 'success',
+                'data': {
+                    'sugar': patch_data['sugar'],
+                    'potassium': patch_data['potassium']
+                }
+            }, 200
+        else:
+            return {'status': 'error', 'message': f'Tidak ada data real-time untuk patch ID {patch_id}'}, 404
 
 
 # --- 6. Resource Autentikasi (Tidak Berubah) ---
@@ -114,7 +128,7 @@ api.add_resource(PatchDataResource, '/patch-data')
 api.add_resource(PredictionResource, '/predict')
 api.add_resource(UserLogin, '/login')
 api.add_resource(UserRegister, '/register')
-
+api.add_resource(GetPatchDataResource, '/get-patch-data/<string:patch_id>')
 
 # --- 8. Menjalankan Aplikasi ---
 if __name__ == '__main__':

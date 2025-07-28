@@ -23,27 +23,38 @@ export default function ResultsPage() {
   const router = useRouter()
 
   useEffect(() => {
-    const user = localStorage.getItem("user")
-    const questionnaire = localStorage.getItem("questionnaireDataForDisplay")
-    const predictionDataJSON = localStorage.getItem("predictionData")
-
-    if (!user || !questionnaire || !predictionDataJSON) {
-      router.push("/examination")
-      return
+    // Pastikan kita punya data kuesioner untuk mendapatkan patch_id
+    if (!questionnaireData?.patch_id) {
+        return; // Keluar jika patch_id tidak ada
     }
 
-    const predictionData = JSON.parse(predictionDataJSON)
+    const patch_id = questionnaireData.patch_id;
 
-    setUserData(JSON.parse(user))
-    setQuestionnaireData(JSON.parse(questionnaire))
-    
-    // Set semua state dari objek predictionData
-    setPredictionResult(predictionData.prediction)
-    setPotassiumLevel(predictionData.used_patch_data.potassium)
-    setSugarLevel(predictionData.used_patch_data.sugar)
+    // Fungsi untuk mengambil data terbaru
+    const fetchRealtimeData = async () => {
+        try {
+            const response = await fetch(`http://localhost:5000/get-patch-data/${patch_id}`);
+            const result = await response.json();
 
-    setIsLoading(false)
-  }, [router])
+            if (response.ok) {
+                console.log("Menerima data real-time:", result.data);
+                setPotassiumLevel(result.data.potassium);
+                setSugarLevel(result.data.sugar);
+            }
+        } catch (error) {
+            console.error("Gagal mengambil data real-time:", error);
+        }
+    };
+
+    // Jalankan polling setiap 10 detik
+    const intervalId = setInterval(fetchRealtimeData, 10000); // 10000 ms = 10 detik
+
+    // --- BAGIAN SANGAT PENTING: CLEANUP ---
+    // Fungsi ini akan dijalankan saat komponen dihancurkan (misal: saat pindah halaman)
+    // untuk menghentikan interval dan mencegah memory leak.
+    return () => clearInterval(intervalId);
+
+}, [questionnaireData]);
 
 
   // Helper functions untuk UI
