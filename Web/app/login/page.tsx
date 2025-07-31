@@ -1,105 +1,130 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Image from "next/image"
 import { Mail, Lock } from "lucide-react"
+import Header from "@/components/layout/Header" // <-- 1. Impor komponen Header
 
-const LoginPage: React.FC = () => {
+export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
+  const [successMessage, setSuccessMessage] = useState("")
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  // Menampilkan pesan sukses setelah registrasi
+  useEffect(() => {
+    if (searchParams.get("registered") === "true") {
+      setSuccessMessage("Registrasi berhasil! Silakan masuk.")
+    }
+  }, [searchParams])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError("")
     setIsLoading(true)
 
-    // Simulate login process
-    setTimeout(() => {
+    try {
+      const dataToSend = {
+        email: email,
+        password: password,
+      }
+
+      const response = await fetch('http://localhost:5000/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(dataToSend),
+      })
+
+      const result = await response.json()
+
+      if (response.ok) {
+        console.log("Login berhasil. Token diterima.")
+        localStorage.setItem("accessToken", result.access_token)
+        localStorage.setItem("user", JSON.stringify({ email }))
+        router.push("/examination")
+      } else {
+        setError(result.message || "Terjadi kesalahan saat login.")
+      }
+    } catch (error) {
+      console.error("Tidak bisa terhubung ke server:", error)
+      setError("Gagal terhubung ke server. Pastikan server back-end sudah berjalan.")
+    } finally {
       setIsLoading(false)
-      // Store user session (in real app, use proper authentication)
-      localStorage.setItem("user", JSON.stringify({ email }))
-      router.push("/examination")
-    }, 1500)
+    }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center space-x-2 mb-4">
-            <Image
-              src="/images/LOGO_PP_IG-removebg-preview.png"
-              alt="RenITS Logo"
-              width={40}
-              height={40}
-              className="h-10 w-10"
-            />
-            <h1 className="text-2xl font-bold text-foreground">RenITS</h1>
-          </Link>
-          <h2 className="text-xl text-gray-600">Masuk ke Akun Anda</h2>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50">
+      {/* --- 2. Gunakan komponen Header di sini --- */}
+      <Header />
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Login</CardTitle>
-            <CardDescription>Masukkan email dan password untuk mengakses pemeriksaan</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="nama@email.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10"
-                    required
-                  />
+      <main className="flex items-center justify-center p-4 pt-16">
+        <div className="w-full max-w-md">
+          <Card>
+            <CardHeader className="text-center">
+              <CardTitle className="text-2xl">Masuk ke Akun Anda</CardTitle>
+              <CardDescription>Masukkan email dan password untuk mengakses pemeriksaan</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {successMessage && <p className="text-green-600 text-sm mb-4 bg-green-50 p-3 rounded-md">{successMessage}</p>}
+              <form onSubmit={handleLogin} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="nama@email.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="pl-10"
+                      required
+                    />
+                  </div>
                 </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="Masukkan password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10"
-                    required
-                  />
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="password"
+                      type="password"
+                      placeholder="Masukkan password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="pl-10"
+                      required
+                    />
+                  </div>
                 </div>
+                {error && <p className="text-destructive text-sm">{error}</p>}
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? "Memproses..." : "Masuk"}
+                </Button>
+              </form>
+              <div className="mt-4 text-center text-sm text-gray-600">
+                Belum punya akun?{" "}
+                <Link href="/register" className="text-blue-600 hover:underline">
+                  Daftar di sini
+                </Link>
               </div>
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Memproses..." : "Masuk"}
-              </Button>
-            </form>
-            <div className="mt-4 text-center text-sm text-gray-600">
-              Belum punya akun?{" "}
-              <Link href="/register" className="text-blue-600 hover:underline">
-                Daftar di sini
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+        </div>
+      </main>
     </div>
   )
 }
-
-export default LoginPage

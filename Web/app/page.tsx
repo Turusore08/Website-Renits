@@ -1,49 +1,48 @@
+"use client"
+
+import { useState, useEffect } from "react" // <-- Impor kembali
 import Link from "next/link"
-import Image from "next/image" // Import Image component
+import Image from "next/image" // <-- Impor Image
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Shield, Users, Zap } from "lucide-react" // Removed Activity
+import { Shield, Users, Zap } from "lucide-react"
+import Header from "@/components/layout/Header"
 
 export default function HomePage() {
+  // --- TAMBAHKAN KEMBALI LOGIKA INI, KHUSUS UNTUK HALAMAN INI ---
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+
+  useEffect(() => {
+    // useEffect ini hanya berjalan di sisi klien, aman untuk localStorage
+    const token = localStorage.getItem("accessToken")
+    if (token) {
+      setIsLoggedIn(true)
+    }
+  }, [])
+  // -----------------------------------------------------------
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-2">
-              <Image
-                src="/images/LOGO_PP_IG-removebg-preview.png"
-                alt="RenITS Logo"
-                width={40}
-                height={40}
-                className="h-10 w-10"
-              />
-              <h1 className="text-2xl font-bold text-foreground">RenITS</h1> {/* Changed to text-logo-blue */}
-            </div>
-            <Link href="/login">
-              <Button>Masuk</Button>
-            </Link>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       {/* Hero Section */}
       <section className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-4xl font-bold text-gray-900 mb-6">Deteksi Dini Penyakit Ginjal dengan Teknologi Smart</h2>
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            RenITS adalah alat revolusioner yang dapat mendeteksi penyakit ginjal hanya dengan beberapa parameter
-            sederhana menggunakan teknologi smartpatch yang menganalisis keringat Anda.
+            RenITS adalah patch pintar yang dapat mendeteksi penyakit ginjal hanya dengan beberapa parameter
+            sederhana menggunakan teknologi machine learning yang menganalisis kandungan keringat Anda.
           </p>
-          <Link href="/login">
+          {/* --- Tautan Dinamis ini sekarang akan berfungsi --- */}
+          <Link href={isLoggedIn ? "/examination" : "/login"}>
             <Button size="lg" className="text-lg px-8 py-3 bg-primary hover:bg-primary/90">
               Mulai Pemeriksaan
             </Button>
           </Link>
         </div>
       </section>
-
+      
+      {/* Sisa dari halaman Anda tetap sama... */}
       {/* Features */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -124,19 +123,19 @@ export default function HomePage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
+       <footer className="bg-gray-900 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <div className="flex items-center justify-center space-x-2 mb-4">
+            <Link href="/" className="flex items-center justify-center space-x-2 mb-4">
               <Image
-                src="/images/LOGO_PP_IG-removebg-preview.png"
+                src="https://placehold.co/40x40/FFFFFF/3B82F6?text=R"
                 alt="RenITS Logo"
                 width={40}
                 height={40}
                 className="h-10 w-10"
               />
-              <h3 className="text-2xl font-bold text-foreground">RenITS</h3> {/* Changed to text-logo-blue */}
-            </div>
+              <h3 className="text-2xl font-bold">RenITS</h3>
+            </Link>
             <p className="text-gray-400 mb-4">Teknologi deteksi dini penyakit ginjal untuk hidup yang lebih sehat</p>
             <p className="text-sm text-gray-500">© 2024 RenITS. Semua hak dilindungi.</p>
           </div>
