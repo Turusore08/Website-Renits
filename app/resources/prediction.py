@@ -20,7 +20,7 @@ except Exception as e:
     print(f"ERROR memuat model dari resource: {e}")
     loaded_model = None
 
-# --- Parser (Tidak Berubah) ---
+# --- Parser ---
 predict_parser = reqparse.RequestParser()
 predict_parser.add_argument('patch_id', type=str, required=True, help='ID unik dari patch tidak boleh kosong')
 predict_parser.add_argument('age', type=float, required=True, help='Nilai age tidak boleh kosong')
@@ -35,8 +35,9 @@ patch_parser.add_argument('patch_id', type=str, required=True, help='ID unik dar
 patch_parser.add_argument('sugar', type=int, required=True, help='Nilai sugar dari patch tidak boleh kosong')
 patch_parser.add_argument('potassium', type=float, required=True, help='Nilai potassium dari patch tidak boleh kosong')
 
-
 # --- Resources ---
+
+# --- KELAS YANG HILANG DITAMBAHKAN KEMBALI DI SINI ---
 class PatchDataResource(Resource):
     @jwt_required()
     def post(self):
@@ -69,6 +70,12 @@ class PredictionResource(Resource):
                 return {'status': 'error', 'message': f'Data untuk patch ID {patch_id} belum diterima.'}, 404
             
             input_df = pd.DataFrame([{'age': args['age'], 'sugar': patch_data.sugar, 'potassium': patch_data.potassium, 'appetite': args['appetite'], 'hypertension': args['hypertension'], 'diabetes_mellitus': args['diabetes_mellitus'], 'coronary_artery_disease': args['coronary_artery_disease'], 'peda_edema': args['peda_edema']}])
+            
+            print("\n--- BUKTI DARI SERVER ---", flush=True)
+            print("Isi Data (DataFrame):", flush=True)
+            print(input_df.to_string(), flush=True)
+            print("-------------------------\n", flush=True)
+
             prediction_result = loaded_model.predict(input_df)
             result_text = "Terindikasi Penyakit Ginjal" if prediction_result[0] == 1 else "Tidak Terindikasi Penyakit Ginjal"
             
@@ -85,10 +92,8 @@ class PredictionResource(Resource):
             db.session.commit()
 
             return {'status': 'success', 'prediction': result_text, 'used_patch_data': {'sugar': patch_data.sugar, 'potassium': patch_data.potassium}}, 200
-        except BadRequest as e:
-            error_details = e.data.get('message', 'Format data tidak diketahui.')
-            return {'status': 'error', 'message': f"Data yang dikirim tidak valid: {error_details}"}, 400
         except Exception as e:
+            print(f"--- DEBUG: TERJADI ERROR SAAT PREDIKSI: {e} ---", flush=True)
             return {'status': 'error', 'message': f'Terjadi kesalahan tak terduga di server: {str(e)}'}, 500
 
 class GetPatchDataResource(Resource):
@@ -99,16 +104,11 @@ class GetPatchDataResource(Resource):
         else:
             return {'status': 'error', 'message': f'Tidak ada data real-time untuk patch ID {patch_id}'}, 404
 
-# --- RESOURCE BARU UNTUK RIWAYAT PREDIKSI ---
 class HistoryResource(Resource):
     @jwt_required()
     def get(self):
         current_user_id = get_jwt_identity()
-        
-        # Ambil semua riwayat untuk pengguna ini, urutkan dari yang terbaru
         history_records = PredictionHistoryModel.query.filter_by(user_id=current_user_id).order_by(PredictionHistoryModel.timestamp.desc()).all()
-        
-        # Format data agar bisa dikirim sebagai JSON
         history_list = []
         for record in history_records:
             history_list.append({
@@ -121,5 +121,4 @@ class HistoryResource(Resource):
                 'hypertension': record.hypertension,
                 'diabetes_mellitus': record.diabetes_mellitus
             })
-            
         return {'status': 'success', 'history': history_list}, 200

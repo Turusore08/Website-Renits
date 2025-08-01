@@ -5,9 +5,10 @@ from datetime import datetime
 class UserModel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128), nullable=False)
+    # --- PERUBAHAN KRITIS DI SINI ---
+    # Perbesar kapasitas kolom untuk menampung hash yang lebih panjang
+    password_hash = db.Column(db.String(256), nullable=False)
     
-    # Menambahkan relasi ke riwayat prediksi
     predictions = db.relationship('PredictionHistoryModel', backref='user', lazy=True)
 
     def set_password(self, password):
@@ -22,19 +23,13 @@ class PatchDataModel(db.Model):
     potassium = db.Column(db.Float, nullable=False)
     timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
-# --- MODEL BARU UNTUK RIWAYAT PREDIKSI ---
 class PredictionHistoryModel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
-    
-    # Kunci asing untuk menghubungkan prediksi ini dengan pengguna yang membuatnya
     user_id = db.Column(db.Integer, db.ForeignKey('user_model.id'), nullable=False)
-    
-    # Menyimpan hasil dan data yang digunakan
     prediction_result = db.Column(db.String(100), nullable=False)
     age = db.Column(db.Float, nullable=False)
     sugar = db.Column(db.Integer, nullable=False)
     potassium = db.Column(db.Float, nullable=False)
     hypertension = db.Column(db.Boolean, nullable=False)
     diabetes_mellitus = db.Column(db.Boolean, nullable=False)
-    # ... Anda bisa menambahkan semua fitur lain yang digunakan jika perlu

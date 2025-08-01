@@ -15,4 +15,4 @@ def make_shell_context():
 if __name__ == '__main__':
     # Jalankan aplikasi. Gunakan host='0.0.0.0' agar bisa diakses
     # dari luar container jika menggunakan Docker.
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=False)
