@@ -37,7 +37,7 @@ export default function HistoryPage() {
       }
 
       try {
-        const response = await fetch('http://localhost:5000/history', {
+        const response = await fetch('${process.env.NEXT_PUBLIC_API_URL}/history', {
           headers: {
             'Authorization': `Bearer ${token}`
           }

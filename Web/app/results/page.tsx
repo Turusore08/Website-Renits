@@ -51,7 +51,7 @@ export default function ResultsPage() {
 
     const fetchRealtimeData = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/get-patch-data/${patchId}`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/get-patch-data/${patchId}`, {
           cache: 'no-cache' 
         });
         
