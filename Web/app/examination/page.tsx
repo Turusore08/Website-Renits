@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { User, Calendar, QrCode } from "lucide-react"
-import Header from "@/components/layout/Header" // <-- 1. Impor komponen Header
+import Header from "@/components/layout/Header"
 
 export default function ExaminationPage() {
   const [formData, setFormData] = useState({
@@ -26,6 +26,7 @@ export default function ExaminationPage() {
   const router = useRouter()
 
   useEffect(() => {
+    // Cek jika pengguna sudah login DENGAN MEMERIKSA TOKEN
     const token = localStorage.getItem("accessToken")
     if (!token) {
       router.push("/login")
@@ -37,11 +38,9 @@ export default function ExaminationPage() {
     setIsLoading(true)
 
     const token = localStorage.getItem("accessToken")
-    
     if (!token) {
       alert("Sesi Anda telah berakhir. Silakan login kembali.")
       router.push("/login")
-      setIsLoading(false)
       return
     }
 
@@ -56,7 +55,10 @@ export default function ExaminationPage() {
     }
     
     try {
-      const response = await fetch('${process.env.NEXT_PUBLIC_API_URL}/predict', {
+      // --- PERBAIKAN KRITIS DI SINI ---
+      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/predict`;
+
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -92,12 +94,9 @@ export default function ExaminationPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50">
-      {/* --- 2. Gunakan komponen Header di sini --- */}
       <Header />
-
       <main className="p-4">
         <div className="max-w-2xl mx-auto">
-          {/* Judul halaman sekarang ada di dalam Card */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2 text-2xl">
