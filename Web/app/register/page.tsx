@@ -1,16 +1,16 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
+import { useState } from "react"
+import Link from "next/link"
+import Image from "next/image"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import Image from "next/image"
 import { Mail, Lock } from "lucide-react"
-import Header from "@/components/layout/Header" // <-- 1. Impor komponen Header
+import Header from "@/components/layout/Header"
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("")
@@ -37,7 +37,11 @@ export default function RegisterPage() {
         password: password,
       }
 
-      const response = await fetch('${process.env.NEXT_PUBLIC_API_URL}/register', {
+      // --- PERBAIKAN KRITIS DI SINI ---
+      // Pastikan URL API diambil dari environment variable dengan benar.
+      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/register`;
+
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -63,9 +67,7 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50">
-      {/* --- 2. Gunakan komponen Header di sini --- */}
       <Header />
-
       <main className="flex items-center justify-center p-4 pt-16">
         <div className="w-full max-w-md">
           <Card>
